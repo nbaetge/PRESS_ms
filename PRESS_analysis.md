@@ -1,15 +1,14 @@
----
-title: "PRESS_analysis"
-author: "Nicholas Baetge"
-date: "12/4/2020"
-output: github_document
----
+PRESS\_analysis
+================
+Nicholas Baetge
+12/4/2020
 
-This document provides the analysis and figures for the PRESS manuscript, specifically using data from experiment PN15-3.
+This document provides the analysis and figures for the PRESS
+manuscript, specifically using data from experiment PN15-3.
 
 # Prepare libraries and data
 
-```{r load libraries, message=FALSE, warning=FALSE}
+``` r
 library(tidyverse)
 library(readxl)
 library(lmodel2)
@@ -17,7 +16,7 @@ library(blandr)
 library(patchwork)
 ```
 
-```{r load data}
+``` r
 # data <- read_excel("~/GITHUB/PRESS_ms/Input_Data/PRESS_data.xlsx", sheet = "data") %>% 
 #   filter(experiment == "PN15-3")
 
@@ -27,20 +26,36 @@ subset <- read_rds("~/GITHUB/PRESS_ms/Input_Data/PRESS_subset.rds")
 
 glimpse(subset)
 ```
+
+    ## Rows: 48
+    ## Columns: 14
+    ## $ experiment  <chr> "PN15-3", "PN15-3", "PN15-3", "PN15-3", "PN15-3", "PN15-3…
+    ## $ bottle      <chr> "A", "A", "A", "A", "B", "B", "B", "B", "C", "C", "C", "C…
+    ## $ timepoint   <dbl> 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, …
+    ## $ hours       <dbl> 0, 48, 27, 96, 0, 48, 27, 96, 0, 48, 27, 96, 0, 48, 27, 9…
+    ## $ filter_type <chr> "none", "none", "none", "none", "none", "none", "none", "…
+    ## $ method      <chr> "pour", "pour", "pour", "pour", "pour", "pour", "pour", "…
+    ## $ bottle_type <chr> "custom.cap.switch", "custom.cap.switch", "custom.cap.swi…
+    ## $ bottle_vol  <dbl> 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, …
+    ## $ toc         <dbl> 85.49484, 81.82101, 83.31384, 83.20631, 86.86581, 82.8030…
+    ## $ sd_toc      <dbl> 0.80848410, 0.73245111, 0.40044040, 0.61333276, 1.3331117…
+    ## $ doc         <dbl> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…
+    ## $ sd_doc      <dbl> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…
+    ## $ ba          <dbl> 252140.89, 675581.14, 840807.04, 1032144.25, 247930.87, 7…
+    ## $ sd_ba       <dbl> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…
+
 # Pour v. Pressure TOC
 
-```{r subset data}
+``` r
 toc.data <- subset %>% 
   filter(filter_type == "none", method %in% c("pour", "press", "grav")) %>% 
   drop_na(toc) %>% 
   pivot_wider(id_cols = c(experiment, bottle, timepoint), names_from = method, values_from = c(toc, sd_toc))
 ```
 
-```{r model 2 regression, echo = FALSE}
-reg1 <- lmodel2(toc_press ~ toc_pour, data = toc.data, nperm = 99)
-```
+    ## RMA was not requested: it will not be computed.
 
-```{r model 2 plot, message=FALSE, warning=FALSE}
+``` r
 toc.lm.plot <- toc.data %>% 
   ggplot(aes(x = toc_pour, y = toc_press)) + 
    geom_abline(intercept = reg1$regression.results[3,2],
@@ -58,36 +73,25 @@ toc.lm.plot <- toc.data %>%
   ylim(80, 90) +
   annotate( geom = "text", label = expression(atop("y = 1.33x - 28.9", paste("r"^2," = 0.09, ", italic("p "), "= 0.24"))), x = 82.5, y = 89, size = 4) +
   theme_bw()
-  
 ```
 
-```{r toc blandr}
+``` r
 toc.blandr <- blandr.statistics(toc.data$toc_pour, toc.data$toc_press, sig.level = 0.95)
 
 toc.blandr$bias
 ```
-```{r toc blandr plot, echo = FALSE, warning = FALSE, message = FALSE}
-toc.blandr.plot <- toc.data %>% 
-  mutate(diff = toc_pour - toc_press,
-         mean = (toc_pour + toc_press) / 2) %>% 
-  ggplot(., aes(x = mean, y = diff)) +
-  geom_hline(yintercept = 0, size = 1, linetype = 1) +
-  geom_hline(yintercept = toc.blandr$bias, size = 1, linetype = 2) +
-  geom_hline(yintercept = toc.blandr$upperLOA, size = 1, linetype = 3) +
-  geom_hline(yintercept = toc.blandr$lowerLOA, size = 1, linetype = 3) +
-   geom_point(color = "black", fill = "white",  shape = 21, size = 2, alpha = 0.8) +
-  labs(y = expression(italic(paste("Difference, µmol C L"^-1))), x = expression(italic(paste("Mean, µmol C L"^-1)))) +
-  theme_bw() +
-  guides(fill = F)
-```
 
-```{r combine TOC comparison plots, fig.height=3, fig.width=7, message=FALSE, warning=FALSE}
+    ## [1] 1.114464
+
+``` r
 toc.lm.plot + toc.blandr.plot
 ```
 
-#Plot TOC and DOC curves
+![](PRESS_analysis_files/figure-gfm/combine%20TOC%20comparison%20plots-1.png)<!-- -->
 
-```{r subset and average data}
+\#Plot TOC and DOC curves
+
+``` r
 curve.data <- subset %>%
   select(timepoint:method, toc, doc) %>% 
   group_by(timepoint, filter_type, method) %>%
@@ -112,10 +116,11 @@ curve.sd.pivot <- curve.data %>%
 curve.pivot <- left_join(curve.ave.pivot, curve.sd.pivot) %>% 
   drop_na(sd) %>% 
   mutate(days = hours/24)
-
 ```
 
-```{r plot curve, fig.height=3, fig.width=5, message=FALSE, warning=FALSE}
+    ## Joining, by = c("timepoint", "hours", "filter_type", "method", "oc")
+
+``` r
 curve.pivot %>% 
   ggplot(aes(x = days, y = ave, group = interaction(filter_type, method))) +
   labs(x = "Days", y = expression("Organic Carbon, µmol C L"^-1), fill = "Method", linetype = "Sample Type") +
@@ -128,4 +133,4 @@ curve.pivot %>%
   guides(color = F)
 ```
 
-
+![](PRESS_analysis_files/figure-gfm/plot%20curve-1.png)<!-- -->
