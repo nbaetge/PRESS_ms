@@ -49,15 +49,15 @@ toc.lm.plot <- toc.data %>%
               slope = reg1$confidence.intervals[3,4],colour = "grey", linetype = 3, size = 1) +
   geom_abline(intercept = reg1$confidence.intervals[3,3],
               slope = reg1$confidence.intervals[3,5],colour = "grey", linetype = 3, size = 1) +
-  geom_errorbarh(aes(xmin = toc_pour - sd_toc_pour, xmax = toc_pour + sd_toc_pour), height = 0.5) +
-  geom_errorbar(aes(ymin = toc_press - sd_toc_press, ymax = toc_press + sd_toc_press), width = 0.5) +
-  geom_point(shape = 21, color = "black", fill = "white", size = 2, alpha = 0.8) +
+  geom_errorbarh(aes(xmin = toc_pour - sd_toc_pour, xmax = toc_pour + sd_toc_pour), height = 0.2) +
+  geom_errorbar(aes(ymin = toc_press - sd_toc_press, ymax = toc_press + sd_toc_press), width = 0.2) +
+  geom_point(shape = 21, color = "black", fill = "white", size = 3, alpha = 0.8) +
   geom_abline(intercept = 0, slope = 1) +
   labs(x = expression("TOC (Poured), µmol C L"^-1), y = expression("TOC (PRESS), µmol C L"^-1)) +
   xlim(80, 90) +
   ylim(80, 90) +
-  annotate( geom = "text", label = expression(atop("y = 1.33x - 28.9", paste("r"^2," = 0.09, ", italic("p "), "= 0.24"))), x = 82.5, y = 89, size = 4) +
-  theme_bw()
+  annotate( geom = "text", label = expression(atop("y = 1.33x - 28.9", paste("r"^2," = 0.09, ", italic("p "), "= 0.24"))), x = 81, y = 89.5, size = 4) +
+  theme_bw(base_size = 16)
   
 ```
 
@@ -75,13 +75,13 @@ toc.blandr.plot <- toc.data %>%
   geom_hline(yintercept = toc.blandr$bias, size = 1, linetype = 2) +
   geom_hline(yintercept = toc.blandr$upperLOA, size = 1, linetype = 3) +
   geom_hline(yintercept = toc.blandr$lowerLOA, size = 1, linetype = 3) +
-   geom_point(color = "black", fill = "white",  shape = 21, size = 2, alpha = 0.8) +
+   geom_point(color = "black", fill = "white",  shape = 21, size = 3, alpha = 0.8) +
   labs(y = expression(italic(paste("Difference, µmol C L"^-1))), x = expression(italic(paste("Mean, µmol C L"^-1)))) +
-  theme_bw() +
+  theme_bw(base_size = 16) +
   guides(fill = F)
 ```
 
-```{r combine TOC comparison plots, fig.height=3, fig.width=7, message=FALSE, warning=FALSE}
+```{r combine TOC comparison plots, fig.height=6, fig.width=14, message=FALSE, warning=FALSE}
 toc.lm.plot + toc.blandr.plot
 ```
 
@@ -115,16 +115,16 @@ curve.pivot <- left_join(curve.ave.pivot, curve.sd.pivot) %>%
 
 ```
 
-```{r plot curve, fig.height=3, fig.width=5, message=FALSE, warning=FALSE}
+```{r plot curve, fig.height=6, fig.width=10, message=FALSE, warning=FALSE}
 curve.pivot %>% 
   ggplot(aes(x = days, y = ave, group = interaction(filter_type, method))) +
   labs(x = "Days", y = expression("Organic Carbon, µmol C L"^-1), fill = "Method", linetype = "Sample Type") +
-  geom_errorbar(aes(ymin = ave - sd, ymax = ave + sd, color = method), width = 0.1, alpha = 0.8) +
+  geom_errorbar(aes(ymin = ave - sd, ymax = ave + sd, color = method), width = 0.05, alpha = 0.8) +
   geom_line(aes(color = method, linetype = filter_type), size = 0.75) + 
-  geom_point(aes(fill = method), size = 2, shape = 21) +
+  geom_point(aes(fill = method), size = 3, shape = 21) +
   scale_color_manual(values = c("Pour" = "#4DAF4A", "PRESS" = "#377EB8")) +
   scale_fill_manual(values = c("Pour" = "#4DAF4A", "PRESS" = "#377EB8")) +
-  theme_bw() +
+  theme_bw(base_size = 16) +
   guides(color = F)
 ```
 
