@@ -84,10 +84,56 @@ toc.blandr$bias
     ## [1] 1.114464
 
 ``` r
-toc.lm.plot + toc.blandr.plot
+toc.lm.plot + toc.blandr.plot + plot_annotation(tag_levels = 'A')
 ```
 
 ![](PRESS_analysis_files/figure-gfm/combine%20TOC%20comparison%20plots-1.png)<!-- -->
+
+# TOC v DOC blandr
+
+``` r
+doc.data <- subset %>% 
+  drop_na(doc) %>% 
+  select(timepoint, doc) %>% 
+  group_by(timepoint) %>% 
+  mutate(ave_doc = mean(doc, na.rm = T),
+         sd_doc = sd(doc, na.rm = T)) %>% 
+  ungroup() %>% 
+  select(-doc) %>% 
+  distinct()
+
+ave.toc.data <- toc.data %>% 
+  select(timepoint, toc_pour, toc_press) %>% 
+  group_by(timepoint) %>% 
+  mutate(ave_toc_pour = mean(toc_pour, na.rm = T),
+         sd_toc_pour = sd(toc_pour, na.rm = T),
+         ave_toc_press = mean(toc_press, na.rm = T),
+         sd_toc_press = sd(toc_press, na.rm = T)) %>% 
+  ungroup() %>% 
+  select(-c(toc_pour, toc_press)) %>% 
+  distinct()
+
+oc.data <- ave.toc.data %>% 
+  left_join(., doc.data)
+```
+
+    ## Joining, by = "timepoint"
+
+``` r
+pour.doc.blandr <- blandr.statistics(oc.data$ave_toc_pour, oc.data$ave_doc, sig.level = 0.95)
+
+pour.doc.blandr$bias
+```
+
+    ## [1] 2.103848
+
+``` r
+press.doc.blandr <- blandr.statistics(oc.data$ave_toc_press, oc.data$ave_doc, sig.level = 0.95)
+
+press.doc.blandr$bias
+```
+
+    ## [1] 0.9893841
 
 \#Plot TOC and DOC curves
 
